@@ -10,6 +10,7 @@ import { Recipe } from './types.js';
 function App() {
   const [recipes, setRecipes] = useState<Recipe[] | null>(null);
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [variationsMap, setVariationsMap] = useState<Record<string, string>>({});
   const [loadingVariationsMap, setLoadingVariationsMap] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -21,6 +22,7 @@ function App() {
     setError(null);
     setRecipes(null);
     setImageUrls({});
+    setImageErrors({});
     setVariationsMap({});
     setLoadingVariationsMap({});
     try {
@@ -38,11 +40,10 @@ function App() {
       newRecipes.forEach(async (recipe) => {
         try {
             const imageUrl = await generateImage(recipe.title);
-            if (imageUrl) {
-                setImageUrls(prev => ({ ...prev, [recipe.title]: imageUrl }));
-            }
+            setImageUrls(prev => ({ ...prev, [recipe.title]: imageUrl }));
         } catch (imgError) {
             console.error(`Failed to generate image for ${recipe.title}:`, imgError);
+            setImageErrors(prev => ({ ...prev, [recipe.title]: true }));
         }
       });
 
@@ -69,6 +70,7 @@ function App() {
   const handleClearAll = () => {
     setRecipes(null);
     setImageUrls({});
+    setImageErrors({});
     setVariationsMap({});
     setLoadingVariationsMap({});
     setIsLoading(false);
@@ -90,6 +92,7 @@ function App() {
                         key={recipe.title}
                         recipe={recipe} 
                         imageUrl={imageUrls[recipe.title] || null}
+                        isImageError={imageErrors[recipe.title] || false}
                         variations={variationsMap[recipe.title] || null}
                         isLoadingVariations={loadingVariationsMap[recipe.title] || false}
                         onGenerateVariations={() => handleGenerateVariations(recipe)}

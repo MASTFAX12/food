@@ -5,12 +5,23 @@ let ai: GoogleGenAI;
 
 function getAi() {
     if (!ai) {
-        // This will now throw an error only when a gemini function is called,
-        // preventing the app from crashing on load.
         ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     }
     return ai;
 }
+
+// Centralized error handler
+const handleApiError = (error: any, context: string): never => {
+    console.error(`Error during ${context}:`, error);
+    const errorMessage = error.message?.toLowerCase() || '';
+
+    if (errorMessage.includes('api key') || errorMessage.includes('permission denied')) {
+        throw new Error("حدث خطأ في الاتصال بالخدمة. يرجى التأكد من أن التطبيق مهيأ بشكل صحيح للعمل في بيئة النشر.");
+    }
+    
+    throw new Error(`عذرًا، حدث خطأ غير متوقع أثناء ${context}. يرجى المحاولة مرة أخرى.`);
+};
+
 
 const recipeSchema = {
     type: Type.ARRAY,
@@ -61,7 +72,6 @@ export const generateRecipe = async (ingredients: string[], dietaryRestrictions:
         لكل وصفة، قم بتضمين تحليل غذائي تقديري يشمل: السعرات الحرارية، البروتين، الكربوهيدرات، والدهون.
     `;
     
-    let textResponse = '';
     try {
         const response = await getAi().models.generateContent({
             model: 'gemini-2.5-flash',
@@ -72,12 +82,10 @@ export const generateRecipe = async (ingredients: string[], dietaryRestrictions:
             },
         });
 
-        textResponse = response.text;
+        const textResponse = response.text;
         
         let jsonString = textResponse;
 
-        // The model can sometimes return non-JSON text around the JSON array.
-        // We'll extract the content between the first '[' and the last ']'.
         const startIndex = jsonString.indexOf('[');
         const endIndex = jsonString.lastIndexOf(']');
 
@@ -85,17 +93,11 @@ export const generateRecipe = async (ingredients: string[], dietaryRestrictions:
             jsonString = jsonString.substring(startIndex, endIndex + 1);
         }
 
-        // Now, attempt to parse the extracted string.
         const recipeData = JSON.parse(jsonString);
         return recipeData as Recipe[];
 
     } catch (error) {
-        console.error("Error generating recipe:", error);
-        // If parsing fails, log the raw text from the API for debugging.
-        if (textResponse) {
-             console.error("Raw response text that failed to parse:", textResponse);
-        }
-        throw new Error("عذرًا، حدث خطأ غير متوقع أثناء إنشاء الوصفة. يرجى المحاولة مرة أخرى.");
+        handleApiError(error, 'إنشاء الوصفة');
     }
 };
 
@@ -121,9 +123,7 @@ export const generateImage = async (recipeTitle: string): Promise<string> => {
         throw new Error("لم يتم العثور على بيانات الصورة في استجابة Imagen.");
 
     } catch (error) {
-        console.error("Error generating image:", error);
-        // لا تقم برمي خطأ يوقف التطبيق، فقط قم بإرجاع سلسلة فارغة
-        return "";
+       handleApiError(error, 'إنشاء الصورة');
     }
 };
 
@@ -140,7 +140,6 @@ export const generateVariations = async (recipe: Recipe): Promise<string> => {
         });
         return response.text;
     } catch (error) {
-        console.error("Error generating variations:", error);
-        throw new Error("فشل في اقتراح تنويعات.");
+        handleApiError(error, 'اقتراح التنويعات');
     }
 };

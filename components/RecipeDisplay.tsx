@@ -4,6 +4,7 @@ import { Recipe } from '../types.js';
 interface RecipeDisplayProps {
     recipe: Recipe;
     imageUrl: string | null;
+    isImageError: boolean;
     variations: string | null;
     isLoadingVariations: boolean;
     onGenerateVariations: () => void;
@@ -22,19 +23,26 @@ const InfoItem: React.FC<{ icon: React.ReactNode; label: string; value?: string 
     );
 };
 
-const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe, imageUrl, variations, isLoadingVariations, onGenerateVariations }) => {
+const RecipeDisplay: React.FC<RecipeDisplayProps> = ({ recipe, imageUrl, isImageError, variations, isLoadingVariations, onGenerateVariations }) => {
     return (
         <div className="mt-8 w-full max-w-4xl mx-auto p-4 sm:p-6 bg-white rounded-2xl shadow-lg transition-shadow hover:shadow-xl" dir="rtl">
             
-            {imageUrl ? (
-                <div className="mb-6 rounded-xl overflow-hidden aspect-video">
+            <div className="mb-6 rounded-xl overflow-hidden aspect-video bg-gray-200">
+                {isImageError ? (
+                     <div className="w-full h-full flex flex-col items-center justify-center text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-red-600 font-semibold">فشل تحميل الصورة</span>
+                    </div>
+                ) : imageUrl ? (
                     <img src={imageUrl} alt={recipe.title} className="w-full h-full object-cover" />
-                </div>
-            ) : (
-                <div className="mb-6 rounded-xl bg-gray-200 animate-pulse w-full aspect-video flex items-center justify-center">
-                    <span className="text-gray-500">جاري تحضير الصورة...</span>
-                </div>
-            )}
+                ) : (
+                    <div className="w-full h-full animate-pulse flex items-center justify-center">
+                        <span className="text-gray-500">جاري تحضير الصورة...</span>
+                    </div>
+                )}
+            </div>
             
             <div className="px-2">
                 <h2 className="text-3xl sm:text-4xl font-bold text-emerald-800 mb-3">{recipe.title}</h2>
