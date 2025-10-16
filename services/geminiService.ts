@@ -76,10 +76,7 @@ export const generateRecipe = async (ingredients: string[], dietaryRestrictions:
         return recipeData as Recipe[];
     } catch (error) {
         console.error("Error generating recipe:", error);
-        if (error instanceof Error && error.message.toLowerCase().includes('api key')) {
-             throw new Error("مفتاح API غير صالح أو مفقود. يرجى التأكد من أن مفتاح API الخاص بك قد تم إعداده بشكل صحيح في بيئة التشغيل.");
-        }
-        throw new Error("فشل إنشاء الوصفات. يرجى المحاولة مرة أخرى.");
+        throw new Error("عذرًا، حدث خطأ غير متوقع أثناء إنشاء الوصفة. يرجى المحاولة مرة أخرى.");
     }
 };
 
