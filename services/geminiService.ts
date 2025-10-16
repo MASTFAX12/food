@@ -1,22 +1,23 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Recipe } from '../types.js';
 
-let ai: GoogleGenAI;
-
+// لم نعد نخزن نسخة واحدة؛ يتم إنشاء نسخة جديدة لكل طلب لضمان استخدام أحدث مفتاح.
 function getAi() {
-    if (!ai) {
-        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    }
-    return ai;
+    return new GoogleGenAI({ apiKey: process.env.API_KEY });
 }
 
-// Centralized error handler
+// معالج الأخطاء المركزي
 const handleApiError = (error: any, context: string): never => {
     console.error(`Error during ${context}:`, error);
     const errorMessage = error.message?.toLowerCase() || '';
 
+    // خطأ محدد عندما لا يتم العثور على المفتاح المحدد أو يكون غير صالح، مما يطالب بإعادة التحديد.
+    if (errorMessage.includes('requested entity was not found')) {
+        throw new Error("API_KEY_RESET_REQUIRED");
+    }
+
     if (errorMessage.includes('api key') || errorMessage.includes('permission denied')) {
-        throw new Error("خطأ في إعدادات واجهة برمجة التطبيقات (API). يبدو أن مفتاح API الخاص بك مفقود أو غير صالح في بيئة النشر. يرجى التأكد من إضافة متغير بيئة `API_KEY` بشكل صحيح في إعدادات موقعك على منصة النشر.");
+        throw new Error("خطأ في إعدادات واجهة برمجة التطبيقات (API). يبدو أن مفتاح API الخاص بك غير صالح. يرجى محاولة تحديد مفتاح آخر.");
     }
     
     throw new Error(`عذرًا، حدث خطأ غير متوقع أثناء ${context}. يرجى المحاولة مرة أخرى.`);
