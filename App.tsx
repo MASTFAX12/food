@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import Header from './components/Header';
-import IngredientInput from './components/IngredientInput';
-import RecipeDisplay from './components/RecipeDisplay';
-import Loader from './components/Loader';
-import ErrorMessage from './components/ErrorMessage';
-import { generateRecipe, generateImage, generateVariations } from './services/geminiService';
-import { Recipe } from './types';
+import Header from './components/Header.js';
+import IngredientInput from './components/IngredientInput.js';
+import RecipeDisplay from './components/RecipeDisplay.js';
+import Loader from './components/Loader.js';
+import ErrorMessage from './components/ErrorMessage.js';
+import { generateRecipe, generateImage, generateVariations } from './services/geminiService.js';
+import { Recipe } from './types.js';
 
 function App() {
   const [recipes, setRecipes] = useState<Recipe[] | null>(null);

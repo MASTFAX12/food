@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { Recipe } from '../types';
+import { Recipe } from '../types.js';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
