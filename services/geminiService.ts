@@ -60,7 +60,8 @@ export const generateRecipe = async (ingredients: string[], dietaryRestrictions:
         تأكد من أن كل وصفة منطقية ويمكن تحضيرها بالمكونات المتاحة فقط.
         لكل وصفة، قم بتضمين تحليل غذائي تقديري يشمل: السعرات الحرارية، البروتين، الكربوهيدرات، والدهون.
     `;
-
+    
+    let textResponse = '';
     try {
         const response = await getAi().models.generateContent({
             model: 'gemini-2.5-flash',
@@ -71,11 +72,18 @@ export const generateRecipe = async (ingredients: string[], dietaryRestrictions:
             },
         });
 
-        const text = response.text;
-        const recipeData = JSON.parse(text);
+        textResponse = response.text;
+        // The Gemini API with a JSON schema might still wrap the output in markdown.
+        // Let's clean it before parsing.
+        const cleanedText = textResponse.replace(/^```json\s*/, '').replace(/```\s*$/, '');
+        const recipeData = JSON.parse(cleanedText);
         return recipeData as Recipe[];
     } catch (error) {
         console.error("Error generating recipe:", error);
+        // If parsing fails, log the raw text from the API for debugging.
+        if (textResponse) {
+             console.error("Raw response text that failed to parse:", textResponse);
+        }
         throw new Error("عذرًا، حدث خطأ غير متوقع أثناء إنشاء الوصفة. يرجى المحاولة مرة أخرى.");
     }
 };
