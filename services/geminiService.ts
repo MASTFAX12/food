@@ -16,7 +16,7 @@ const handleApiError = (error: any, context: string): never => {
     const errorMessage = error.message?.toLowerCase() || '';
 
     if (errorMessage.includes('api key') || errorMessage.includes('permission denied')) {
-        throw new Error("حدث خطأ في الاتصال بالخدمة. يرجى التأكد من أن التطبيق مهيأ بشكل صحيح للعمل في بيئة النشر.");
+        throw new Error("خطأ في إعدادات واجهة برمجة التطبيقات (API). يبدو أن مفتاح API الخاص بك مفقود أو غير صالح في بيئة النشر. يرجى التأكد من إضافة متغير بيئة `API_KEY` بشكل صحيح في إعدادات موقعك على منصة النشر.");
     }
     
     throw new Error(`عذرًا، حدث خطأ غير متوقع أثناء ${context}. يرجى المحاولة مرة أخرى.`);
