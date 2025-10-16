@@ -16,7 +16,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [progressStep, setProgressStep] = useState(0);
 
-  const handleGenerateRecipe = async (data: { ingredients: string[], dietaryRestrictions: string[] }) => {
+  const handleGenerateRecipe = async (data: { ingredients: string[], dietaryRestrictions: string[], recipeCount: number }) => {
     setIsLoading(true);
     setError(null);
     setRecipes(null);
@@ -28,7 +28,7 @@ function App() {
       await new Promise(resolve => setTimeout(resolve, 500)); 
 
       setProgressStep(1); // Generating recipes text
-      const newRecipes = await generateRecipe(data.ingredients, data.dietaryRestrictions);
+      const newRecipes = await generateRecipe(data.ingredients, data.dietaryRestrictions, data.recipeCount);
       
       // Show recipes text first and stop the main loader
       setRecipes(newRecipes);

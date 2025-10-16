@@ -40,7 +40,7 @@ const recipeSchema = {
     }
 };
 
-export const generateRecipe = async (ingredients: string[], dietaryRestrictions: string[]): Promise<Recipe[]> => {
+export const generateRecipe = async (ingredients: string[], dietaryRestrictions: string[], recipeCount: number): Promise<Recipe[]> => {
     const ingredientsString = ingredients.join(', ');
     
     let restrictionsString = '';
@@ -50,7 +50,7 @@ export const generateRecipe = async (ingredients: string[], dietaryRestrictions:
 
     const prompt = `
         أنت طاهٍ خبير وخبير تغذية متخصص في المطبخ العربي.
-        مهمتك هي إنشاء 3 إلى 5 وصفات طعام شهية ومبتكرة ومتنوعة باللغة العربية باستخدام قائمة المكونات المقدمة فقط.
+        مهمتك هي إنشاء ${recipeCount} ${recipeCount === 1 ? 'وصفة' : 'وصفات'} طعام شهية ومبتكرة ومتنوعة باللغة العربية باستخدام قائمة المكونات المقدمة فقط.
         لا تفترض وجود أي مكونات أخرى غير المذكورة (باستثناء الملح والفلفل والماء والزيت).
         
         المكونات المتاحة: ${ingredientsString}.

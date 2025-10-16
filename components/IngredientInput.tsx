@@ -9,7 +9,7 @@ declare global {
 }
 
 interface IngredientInputProps {
-    onGenerateRecipe: (data: { ingredients: string[], dietaryRestrictions: string[] }) => void;
+    onGenerateRecipe: (data: { ingredients: string[], dietaryRestrictions: string[], recipeCount: number }) => void;
     isLoading: boolean;
     onClearAll: () => void;
 }
@@ -39,6 +39,7 @@ const IngredientInput: React.FC<IngredientInputProps> = ({ onGenerateRecipe, isL
     const [currentIngredient, setCurrentIngredient] = useState('');
     const [ingredients, setIngredients] = useState<string[]>([]);
     const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
+    const [recipeCount, setRecipeCount] = useState(3);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -130,7 +131,7 @@ const IngredientInput: React.FC<IngredientInputProps> = ({ onGenerateRecipe, isL
         if (ingredients.length === 0) {
             return;
         }
-        onGenerateRecipe({ ingredients, dietaryRestrictions });
+        onGenerateRecipe({ ingredients, dietaryRestrictions, recipeCount });
     };
     
     const handleCloseModal = () => {
@@ -141,6 +142,7 @@ const IngredientInput: React.FC<IngredientInputProps> = ({ onGenerateRecipe, isL
     const handleClearIngredients = () => {
         setIngredients([]);
         setDietaryRestrictions([]);
+        setRecipeCount(3);
         onClearAll();
     };
 
@@ -341,6 +343,30 @@ const IngredientInput: React.FC<IngredientInputProps> = ({ onGenerateRecipe, isL
                         )}
                     </div>
                 </div>
+
+                 <div className="mb-6">
+                    <label htmlFor="recipe-count-slider" className="block text-lg font-semibold text-gray-700 mb-3">
+                        عدد الوصفات المطلوبة: <span className="font-bold text-emerald-600">{recipeCount}</span>
+                    </label>
+                    <input
+                        id="recipe-count-slider"
+                        type="range"
+                        min="1"
+                        max="5"
+                        value={recipeCount}
+                        onChange={(e) => setRecipeCount(Number(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+                        disabled={isLoading}
+                    />
+                    <div className="flex justify-between text-sm text-gray-500 mt-1 px-1">
+                        <span>1</span>
+                        <span>2</span>
+                        <span>3</span>
+                        <span>4</span>
+                        <span>5</span>
+                    </div>
+                </div>
+
 
                 <div className="text-center">
                     <button
