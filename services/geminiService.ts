@@ -1,7 +1,16 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Recipe } from '../types.js';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI;
+
+function getAi() {
+    if (!ai) {
+        // This will now throw an error only when a gemini function is called,
+        // preventing the app from crashing on load.
+        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    }
+    return ai;
+}
 
 const recipeSchema = {
     type: Type.ARRAY,
@@ -53,7 +62,7 @@ export const generateRecipe = async (ingredients: string[], dietaryRestrictions:
     `;
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await getAi().models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
@@ -67,6 +76,9 @@ export const generateRecipe = async (ingredients: string[], dietaryRestrictions:
         return recipeData as Recipe[];
     } catch (error) {
         console.error("Error generating recipe:", error);
+        if (error instanceof Error && error.message.toLowerCase().includes('api key')) {
+             throw new Error("مفتاح API غير صالح أو مفقود. يرجى التأكد من أن مفتاح API الخاص بك قد تم إعداده بشكل صحيح في بيئة التشغيل.");
+        }
         throw new Error("فشل إنشاء الوصفات. يرجى المحاولة مرة أخرى.");
     }
 };
@@ -74,7 +86,7 @@ export const generateRecipe = async (ingredients: string[], dietaryRestrictions:
 
 export const generateImage = async (recipeTitle: string): Promise<string> => {
     try {
-        const response = await ai.models.generateImages({
+        const response = await getAi().models.generateImages({
             model: 'imagen-4.0-generate-001',
             prompt: `صورة فوتوغرافية احترافية وواقعية لطبق: ${recipeTitle}. يجب أن تبدو الصورة شهية جداً وذات جودة عالية، وبخلفية بسيطة ونظيفة.`,
             config: {
@@ -106,7 +118,7 @@ export const generateVariations = async (recipe: Recipe): Promise<string> => {
         اجعل الرد موجزًا وواضحًا ومباشرًا باللغة العربية.
     `;
      try {
-        const response = await ai.models.generateContent({
+        const response = await getAi().models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
         });
