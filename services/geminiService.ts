@@ -11,13 +11,14 @@ const handleApiError = (error: any, context: string): never => {
     console.error(`Error during ${context}:`, error);
     const errorMessage = error.message?.toLowerCase() || '';
 
-    // خطأ محدد عندما لا يتم العثور على المفتاح المحدد أو يكون غير صالح، مما يطالب بإعادة التحديد.
+    // خطأ محدد عندما لا يتم العثور على المفتاح المحدد أو يكون غير صالح، مما يطالب بإعادة التحديد في بيئة AI Studio.
     if (errorMessage.includes('requested entity was not found')) {
         throw new Error("API_KEY_RESET_REQUIRED");
     }
 
+    // خطأ عام يتعلق بمفتاح API (قد يكون متغير بيئة مفقودًا أو مفتاحًا غير صالح).
     if (errorMessage.includes('api key') || errorMessage.includes('permission denied')) {
-        throw new Error("خطأ في إعدادات واجهة برمجة التطبيقات (API). يبدو أن مفتاح API الخاص بك غير صالح. يرجى محاولة تحديد مفتاح آخر.");
+        throw new Error("INVALID_API_KEY");
     }
     
     throw new Error(`عذرًا، حدث خطأ غير متوقع أثناء ${context}. يرجى المحاولة مرة أخرى.`);

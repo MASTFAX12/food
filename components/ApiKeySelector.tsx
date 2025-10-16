@@ -8,7 +8,8 @@ const ApiKeySelector: React.FC<ApiKeySelectorProps> = ({ onKeySelected }) => {
     
     const handleSelectKey = async () => {
         try {
-            await window.aistudio.openSelectKey();
+            // FIX: Added a non-null assertion because this component is only rendered in an AI Studio environment where `aistudio` is guaranteed to exist.
+            await window.aistudio!.openSelectKey();
             // افتراض النجاح وإعلام المكون الأصل لإعادة العرض
             onKeySelected();
         } catch (error) {

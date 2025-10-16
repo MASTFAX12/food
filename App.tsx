@@ -16,7 +16,8 @@ declare global {
     openSelectKey: () => Promise<void>;
   }
   interface Window {
-    aistudio: AIStudio;
+    // FIX: Made `aistudio` optional as it's only available in the AI Studio environment, resolving the declaration modifier error.
+    aistudio?: AIStudio;
   }
 }
 
@@ -30,34 +31,52 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [progressStep, setProgressStep] = useState(0);
 
-  // حالة جديدة لجاهزية مفتاح API
   const [isApiKeyReady, setIsApiKeyReady] = useState(false);
   const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
 
-  // التحقق من مفتاح API عند التحميل الأولي
+  // تحقق مما إذا كنا في بيئة AI Studio
+  const isAiStudioEnvironment = !!window.aistudio;
+
   useEffect(() => {
     const checkApiKey = async () => {
-      try {
-        if (await window.aistudio.hasSelectedApiKey()) {
-          setIsApiKeyReady(true);
+      // تحقق من مفتاح AI Studio فقط إذا كان الكائن موجودًا
+      if (isAiStudioEnvironment) {
+        try {
+          if (await window.aistudio!.hasSelectedApiKey()) {
+            setIsApiKeyReady(true);
+          }
+        } catch (e) {
+          console.error("Error checking for AI Studio API key:", e);
+        } finally {
+          setIsCheckingApiKey(false);
         }
-      } catch (e) {
-        console.error("Error checking for API key:", e);
-        // افترض أن المفتاح غير جاهز إذا فشل التحقق
-      } finally {
+      } else {
+        // في بيئات أخرى (مثل Netlify)، نفترض أن المفتاح تم تعيينه عبر متغيرات البيئة.
+        // لا يمكننا التحقق منه مباشرة، لذلك نمضي قدمًا. إذا كان مفقودًا، ستفشل استدعاءات API.
+        setIsApiKeyReady(true);
         setIsCheckingApiKey(false);
       }
     };
     checkApiKey();
-  }, []);
+  }, [isAiStudioEnvironment]);
 
 
   const handleApiError = (err: any) => {
-    if (err.message === 'API_KEY_RESET_REQUIRED') {
-      setIsApiKeyReady(false);
-      setError('مفتاح API المحدد غير صالح أو لم يتم العثور عليه. يرجى تحديد مفتاح آخر.');
+    const errorMessage = err.message || 'An unknown error occurred.';
+
+    // أخطاء محددة لمفتاح API
+    if (errorMessage === 'API_KEY_RESET_REQUIRED' || errorMessage === 'INVALID_API_KEY') {
+      if (isAiStudioEnvironment) {
+        // إذا كنت في AI studio، اطلب تحديد مفتاح آخر.
+        setIsApiKeyReady(false);
+        setError('مفتاح API المحدد غير صالح أو لم يتم العثور عليه. يرجى تحديد مفتاح آخر.');
+      } else {
+        // إذا كنت على Netlify/مستقل، أخبرهم بالتحقق من متغيرات البيئة.
+        setError("خطأ في إعدادات واجهة برمجة التطبيقات (API). يبدو أن مفتاح API الخاص بك مفقود أو غير صالح في بيئة النشر. يرجى التأكد من إضافة متغير بيئة `API_KEY` بشكل صحيح في إعدادات موقعك على منصة النشر.");
+      }
     } else {
-      setError(err.message || 'An unknown error occurred.');
+      // خطأ عام للمشكلات الأخرى.
+      setError(errorMessage);
     }
   };
   
@@ -129,13 +148,15 @@ function App() {
       return <div className="text-center p-8">جاري التحقق من إعدادات واجهة برمجة التطبيقات...</div>;
     }
 
-    if (!isApiKeyReady) {
+    // في AI Studio، أظهر أداة التحديد إذا لم يكن المفتاح جاهزًا.
+    if (isAiStudioEnvironment && !isApiKeyReady) {
       return <ApiKeySelector onKeySelected={() => {
           setIsApiKeyReady(true);
           setError(null); // مسح الأخطاء السابقة
       }} />;
     }
 
+    // في جميع الحالات الأخرى (Netlify، أو AI Studio مع مفتاح جاهز)، أظهر التطبيق الرئيسي.
     return (
       <>
         <IngredientInput onGenerateRecipe={handleGenerateRecipe} isLoading={isLoading} onClearAll={handleClearAll} />
