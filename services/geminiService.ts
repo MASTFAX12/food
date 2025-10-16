@@ -73,11 +73,22 @@ export const generateRecipe = async (ingredients: string[], dietaryRestrictions:
         });
 
         textResponse = response.text;
-        // The Gemini API with a JSON schema might still wrap the output in markdown.
-        // Let's clean it before parsing.
-        const cleanedText = textResponse.replace(/^```json\s*/, '').replace(/```\s*$/, '');
-        const recipeData = JSON.parse(cleanedText);
+        
+        let jsonString = textResponse;
+
+        // The model can sometimes return non-JSON text around the JSON array.
+        // We'll extract the content between the first '[' and the last ']'.
+        const startIndex = jsonString.indexOf('[');
+        const endIndex = jsonString.lastIndexOf(']');
+
+        if (startIndex !== -1 && endIndex > startIndex) {
+            jsonString = jsonString.substring(startIndex, endIndex + 1);
+        }
+
+        // Now, attempt to parse the extracted string.
+        const recipeData = JSON.parse(jsonString);
         return recipeData as Recipe[];
+
     } catch (error) {
         console.error("Error generating recipe:", error);
         // If parsing fails, log the raw text from the API for debugging.
